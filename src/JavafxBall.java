@@ -27,9 +27,9 @@ public class JavafxBall extends Application
   private Canvas canvas;          //Area on which to draw graphics items.
   private GraphicsContext gtx;    //Drawing methods for the Canvas.
 
-  private int ballX, ballY;
-  private int speedX, speedY;
-  private int ballSize;
+  private double ballX, ballY,initAngle,gravity;
+  private double speedX, speedY, totalSpeed;
+  private double ballSize;
 
   @Override
   //=========================================================================
@@ -69,12 +69,14 @@ public class JavafxBall extends Application
     //At this point, the an empty, white window is created.
 
     ballSize = 20;
-    ballX  = (int)(Math.random()*(DRAW_WIDTH-ballSize));
-    ballY  = (int)(Math.random()*(DRAW_HEIGHT-ballSize));
-    speedX = (int)(Math.random()*6 - 3);
-    speedY = (int)(Math.random()*6 - 3);
+    ballX  = 0; // start point x for ball
+    ballY  = 0 ; // start point y for ball;
+    speedX = 1 ; //start x speed
+    speedY = 1; // start y speed
+    gravity = 9.81;
 
-
+    totalSpeed = Math.sqrt(1000);
+    initAngle = Math.PI/4;
 
     //Now, we create an new AnimationTimer and start it running.
     //  this will tell JavaFX to call the AnimationTimer's handle method
@@ -121,6 +123,9 @@ public class JavafxBall extends Application
       //         top   (y-coordinate in pixels of the top corner of the rectangle).
       //         width (width in pixels of the rectangle).
       //         height (height in pixels of the rectangle).
+
+      System.out.println("the max range is  " + getRange(totalSpeed,initAngle));
+      System.out.println("the max height is  " + height(totalSpeed,initAngle));
       gtx.fillRect(0, 0, DRAW_WIDTH, DRAW_HEIGHT);
 
 
@@ -128,20 +133,78 @@ public class JavafxBall extends Application
 
       gtx.setFill(Color.RED);
 
+      double Nx = normalizeX(ballX,totalSpeed,initAngle);
+      double Ny = normalizeY(ballY,totalSpeed,initAngle);
+      //gtx.fillRect(Nx, DRAW_HEIGHT-Ny-ballSize, ballSize, ballSize);
+      gtx.fillOval(Nx,DRAW_HEIGHT-Ny-ballSize,20,20);
 
-      gtx.fillRect(ballX, ballY, ballSize, ballSize);
-      ballX = ballX + speedX;
-      ballY = ballY + speedY;
-
-      if (ballX < 0) speedX = (int)(Math.random()*5 +1);
-      if (ballY < 0) speedY = (int)(Math.random()*5 +1);
+      System.out.println("x ==   " + Nx +"    y ====    "  + Ny);
 
 
-      if (ballX > DRAW_WIDTH-ballSize)  speedX = -(int)(Math.random()*5 +1);
-      if (ballY > DRAW_HEIGHT-ballSize) speedY = -(int)(Math.random()*5 +1);
+
+      if (Nx < DRAW_WIDTH-ballSize) {
+
+              ballX = ballX + 0.05;
+              double firstPart = ballX * Math.tan(initAngle);
+              double secondPart = ballX*ballX*gravity;
+              double divider = 2 * totalSpeed*totalSpeed*Math.cos(initAngle)*Math.cos(initAngle);
+              ballY = firstPart - (secondPart/divider);
+
+
+      }
+
+      else
+      {
+        ballX = getRange(totalSpeed,initAngle);
+        ballY = 0;
+      }
+
+//      if (ballY < height(Math.sqrt(2), Math.PI/4))
+//      {
+//        ballY = ballY + Math.tan(Math.PI / 4) - (-9.81 * ballX * ballX) / (2 * totalSpeed * totalSpeed * (Math.cos(Math.PI / 4)));
+//      }
+//
+//      else
+//      {
+//        ballY = ballY + Math.tan(Math.PI / 4) + (-9.81 * ballX * ballX) / (2 * totalSpeed * totalSpeed * (Math.cos(Math.PI / 4)));
+//      }
+
+
+
     }
   } //This bracket ends Animation, the inner class.
 
+  public double normalizeX(double val,double velocity,double angle)
+  {
+    double minX = 0;
+    double maxX = getRange(velocity,angle);
+    double MinValueWanted = 0;
+    double MaxValueWanted = DRAW_WIDTH - ballSize;
+    double ratio =  (MaxValueWanted - MinValueWanted) / (maxX-minX);
+    double NormalizedX = ratio * (val - maxX) + MaxValueWanted;
+    return NormalizedX;
+  }
+
+  public double normalizeY(double val,double velocity,double angle) {
+    double minY = 0;
+    double maxY = height(velocity, angle);
+    double MinValueWanted = 0;
+    double MaxValueWanted = DRAW_HEIGHT - ballSize;
+    double ratio = (MaxValueWanted - MinValueWanted) / (maxY - minY);
+    double NormalizedY = ratio * (val - maxY) + MaxValueWanted;
+    return NormalizedY;
+  }
+  public double getRange(double velocity, double angle) {
+    double sin = Math.sin(2 * angle);
+    double h = ((velocity * velocity) * sin) / ((9.81));
+    return h;
+  }
+
+  public double height(double velocity, double angle) {
+    double sin = Math.sin(angle)*Math.sin(angle);
+    double h = ((velocity*velocity) * sin) / (2 * (9.81));
+    return h;
+  }
 
   //===========================================================================================
   // Every Java program must have public static void main(String[] args).

@@ -1,5 +1,4 @@
-
-
+import java.util.ArrayList;
 
 public class projectilemotion{
 
@@ -12,13 +11,17 @@ public class projectilemotion{
         double time = 0.0;
         double gravity = 9.81;
 
+        System.out.println("sdglkjsfob");
+
 
         //need to find
-         range = 
+         //range =
         // time of flight = ?
         // max height = ?
         // equation of motion = ?
 
     }
+
+
 
 }
